@@ -1,0 +1,12 @@
+[package]
+name = "myn"
+description = "Minimalist Rust syntax parsing for procedural macros"
+version = "0.1.0"
+authors = ["Jay Oster <jay@kodewerx.org>"]
+edition = "2021"
+keywords = ["macros", "myn"]
+categories = ["parser-implementations", "procedural-macro-helpers"]
+license = "MIT"
+
+[dependencies]
+# No dependencies!
