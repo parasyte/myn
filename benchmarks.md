@@ -79,6 +79,28 @@ Crate version:
     - `quote` @ [1.0.26](https://github.com/dtolnay/quote/tree/1.0.26)
     - `proc-macro2` @ [1.0.54](https://github.com/dtolnay/proc-macro2/tree/1.0.54)
 
+## High-end desktop
+
+Benchmark environment:
+
+- Windows 11 Home Version 22H2
+- AMD Ryzen 9 5900X @ 3.70 GHz (32GB DDR4)
+
+### Time (mean ± σ):
+
+| Crate | Full debug              | Full release            | Incremental debug      | Incremental release   |
+|-------|-------------------------|-------------------------|------------------------|-----------------------|
+| `myn` | **859.7 ms ±  36.1 ms** | **785.1 ms ±   8.3 ms** | **524.7 ms ±  6.1 ms** | **614.9 ms ± 5.3 ms** |
+| `syn` |   2.866 s  ± 0.009 s    |   2.907 s  ± 0.012 s    |   611.3 ms ± 11.1 ms   |   722.4 ms ± 5.8 ms   |
+
+### Range (min … max):
+
+| Crate | Full debug              | Full release            | Incremental debug       | Incremental release     |
+|-------|-------------------------|-------------------------|-------------------------|-------------------------|
+| `myn` | **824.6 ms … 913.3 ms** | **774.2 ms … 803.0 ms** | **519.2 ms … 538.7 ms** | **608.2 ms … 624.3 ms** |
+| `syn` |   2.850 s  … 2.882 s    |   2.892 s  … 2.930 s    |   602.0 ms … 640.9 ms   |   713.7 ms … 733.5 ms   |
+
+
 ## Mid-range laptop
 
 Benchmark environment:
