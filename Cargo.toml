@@ -6,7 +6,7 @@ authors = ["Jay Oster <jay@kodewerx.org>"]
 repository = "https://github.com/parasyte/myn"
 edition = "2021"
 keywords = ["macros", "myn"]
-categories = ["parser-implementations", "procedural-macro-helpers"]
+categories = ["development-tools::procedural-macro-helpers", "parser-implementations"]
 license = "MIT"
 
 [dependencies]
