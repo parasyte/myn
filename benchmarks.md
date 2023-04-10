@@ -20,6 +20,8 @@ Benchmark environment:
 
 - Windows 11 Home Version 22H2
 - AMD Ryzen 9 5900X @ 3.70 GHz (32GB DDR4)
+- Rust version: `rustc 1.70.0-nightly (17c116721 2023-03-29)`
+- Linker: `rust-lld`
 
 ### Time (mean ± σ):
 
@@ -42,6 +44,8 @@ Benchmark environment:
 
 - macOS 13.2.1
 - Intel Core i7-7920HQ CPU @ 3.10GHz (16GB LPDDR3)
+- Rust version: `rustc 1.70.0-nightly (0599b6b93 2023-04-01)`
+- Linker: `zld`
 
 ### Time (mean ± σ):
 
@@ -85,6 +89,8 @@ Benchmark environment:
 
 - Windows 11 Home Version 22H2
 - AMD Ryzen 9 5900X @ 3.70 GHz (32GB DDR4)
+- Rust version: `rustc 1.70.0-nightly (17c116721 2023-03-29)`
+- Linker: `rust-lld`
 
 ### Time (mean ± σ):
 
@@ -107,6 +113,8 @@ Benchmark environment:
 
 - macOS 13.2.1
 - Intel Core i7-7920HQ CPU @ 3.10GHz (16GB LPDDR3)
+- Rust version: `rustc 1.70.0-nightly (0599b6b93 2023-04-01)`
+- Linker: `zld`
 
 ### Time (mean ± σ):
 
