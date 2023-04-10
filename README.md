@@ -14,7 +14,7 @@ You can think of `myn` as a minimalist crate with similarities to [`syn`](https:
 ## Why
 
 - 100% safe Rust 🦀.
-- Write `#[derive]` macros with extremely fast compile times. See [benchmarks](./benchmark.md).
+- Write `#[derive]` macros with extremely fast compile times. See [benchmarks](./benchmarks.md).
 
 ## MSRV Policy
 
