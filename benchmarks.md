@@ -10,8 +10,8 @@ The benchmark tool used is [`hyperfine`](https://github.com/sharkdp/hyperfine) w
 
 Crate versions:
 
-- `myn` @ [c86196dc061a2bea10363c9ed3fb7091a70e3984](https://github.com/parasyte/myn/commit/c86196dc061a2bea10363c9ed3fb7091a70e3984)
-- `syn` @ [2dc79880cd982ec217c0e0dbcf751a6e78186b43](https://github.com/dtolnay/syn/commit/2dc79880cd982ec217c0e0dbcf751a6e78186b43)
+- `myn` @ [c86196dc061a2bea10363c9ed3fb7091a70e3984](https://github.com/parasyte/myn/tree/c86196dc061a2bea10363c9ed3fb7091a70e3984)
+- `syn` @ [2dc79880cd982ec217c0e0dbcf751a6e78186b43](https://github.com/dtolnay/syn/tree/2dc79880cd982ec217c0e0dbcf751a6e78186b43)
 
 
 ## High-end desktop
@@ -41,7 +41,7 @@ Benchmark environment:
 Benchmark environment:
 
 - macOS 13.2.1
-- Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz (16GB LPDDR3)
+- Intel Core i7-7920HQ CPU @ 3.10GHz (16GB LPDDR3)
 
 ### Time (mean ± σ):
 
@@ -56,3 +56,46 @@ Benchmark environment:
 |-------|-----------------------|-----------------------|-------------------------|--------------------------|
 | `myn` | **0.967 s … 1.052 s** | **0.990 s … 1.117 s** | **320.9 ms … 389.1 ms** | **589.0 ms …  668.8 ms** |
 | `syn` |   5.805 s … 6.119 s   |   9.593 s … 9.923 s   |   1.239 s  … 1.333 s    |   6.809 s  …  7.389 s    |
+
+
+# Build time comparisons with `#[derive]` macro implementation
+
+The benchmark tool used is [`hyperfine`](https://github.com/sharkdp/hyperfine) with the following arguments:
+
+- Warmup: `-w 1`
+- Prepare full builds: `-p 'cargo clean'`
+- Prepare incremental builds: `-p 'touch onlyargs_derive/src/lib.rs'`
+- Command debug builds: `'cargo build --package derive-example'`
+- Command release builds: `'cargo build --package derive-example --release'`
+
+This compares build times between an application using a `#[derive]` macro built on `myn` and `syn`-family crates. The incremental builds in this setup do not rebuild the dependencies (`myn`, `syn`, etc.) at all.
+
+Crate version:
+
+- `onlyargs_derive` @ [3f446544f7ffa4987fae725ddf367f24acb29be5](https://github.com/parasyte/onlyargs/tree/3f446544f7ffa4987fae725ddf367f24acb29be5)
+    - `myn` @ [c86196dc061a2bea10363c9ed3fb7091a70e3984](https://github.com/parasyte/myn/tree/c86196dc061a2bea10363c9ed3fb7091a70e3984)
+- `onlyargs_derive` @ [6abe5cd5474239846b3bc81d87bca6779e342d1e](https://github.com/parasyte/onlyargs/tree/6abe5cd5474239846b3bc81d87bca6779e342d1e)
+    - `syn` @ [2.0.12](https://github.com/dtolnay/syn/tree/2.0.12)
+    - `quote` @ [1.0.26](https://github.com/dtolnay/quote/tree/1.0.26)
+    - `proc-macro2` @ [1.0.54](https://github.com/dtolnay/proc-macro2/tree/1.0.54)
+
+## Mid-range laptop
+
+Benchmark environment:
+
+- macOS 13.2.1
+- Intel Core i7-7920HQ CPU @ 3.10GHz (16GB LPDDR3)
+
+### Time (mean ± σ):
+
+| Crate | Full debug            | Full release          | Incremental debug       | Incremental release   |
+|-------|-----------------------|-----------------------|-------------------------|-----------------------|
+| `myn` | **2.008 s ± 0.032 s** | **1.982 s ± 0.069 s** | **969.0 ms ±  41.5 ms** | **1.258 s ± 0.012 s** |
+| `syn` |   6.931 s ± 0.150 s   |   6.935 s ± 0.088 s   |   1.080 s  ± 0.030 s    |   1.486 s ± 0.027 s   |
+
+### Range (min … max):
+
+| Crate | Full debug            | Full release          | Incremental debug        | Incremental release   |
+|-------|-----------------------|-----------------------|--------------------------|-----------------------|
+| `myn` | **1.945 s … 2.059 s** | **1.884 s … 2.113 s** | **932.5 ms … 1076.6 ms** | **1.243 s … 1.277 s** |
+| `syn` |   6.594 s … 7.138 s   |   6.840 s … 7.148 s   |   1.033 s  …  1.117 s    |   1.447 s … 1.529 s   |
