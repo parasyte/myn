@@ -153,7 +153,7 @@ impl TokenTreeExt for Option<TokenTree> {
 
 impl LiteralExt for Literal {
     fn as_char(&self) -> Result<char, TokenStream> {
-        let string = format!("{self}");
+        let string = self.to_string();
         if !string.starts_with('\'') || !string.ends_with('\'') {
             return Err(spanned_error("Expected char literal", self.span()));
         }
@@ -166,7 +166,7 @@ impl LiteralExt for Literal {
     }
 
     fn as_string(&self) -> Result<String, TokenStream> {
-        let string = format!("{self}");
+        let string = self.to_string();
         if !string.starts_with('"') || !string.ends_with('"') {
             return Err(spanned_error("Expected string literal", self.span()));
         }
