@@ -5,6 +5,7 @@ version = "0.1.0"
 authors = ["Jay Oster <jay@kodewerx.org>"]
 repository = "https://github.com/parasyte/myn"
 edition = "2021"
+rust-version = "1.58.0"
 keywords = ["macros", "myn"]
 categories = ["development-tools::procedural-macro-helpers", "parser-implementations"]
 license = "MIT"
