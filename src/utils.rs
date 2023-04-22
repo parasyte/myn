@@ -34,7 +34,7 @@ pub fn get_doc_comment(attrs: &[Attribute]) -> Vec<String> {
                     _ => return None,
                 }
 
-                tree.as_lit().and_then(|lit| lit.as_string()).ok()
+                tree.try_lit().and_then(|lit| lit.as_string()).ok()
             } else {
                 None
             }

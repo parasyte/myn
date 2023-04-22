@@ -12,3 +12,6 @@ license = "MIT"
 
 [dependencies]
 # No dependencies!
+
+[dev-dependencies]
+proc_macro = { package = "proc-macro2", version = "1" }
