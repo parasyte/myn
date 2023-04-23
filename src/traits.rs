@@ -53,6 +53,9 @@ pub trait TokenIterExt: Iterator<Item = TokenTree> {
     ///
     /// Returns the group's inner [`TokenStream`] as a [`TokenIter`] when successful.
     ///
+    /// This method should always consume the next item from the stream, even when an error is
+    /// returned.
+    ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
@@ -61,6 +64,9 @@ pub trait TokenIterExt: Iterator<Item = TokenTree> {
 
     /// Parse the input as an identifier, expecting it to match the given string.
     ///
+    /// This method should always consume the next item from the stream, even when an error is
+    /// returned.
+    ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
@@ -68,6 +74,9 @@ pub trait TokenIterExt: Iterator<Item = TokenTree> {
     fn expect_ident(&mut self, expect: &str) -> Result<(), TokenStream>;
 
     /// Parse the input as punctuation, expecting it to match the given char.
+    ///
+    /// This method should always consume the next item from the stream, even when an error is
+    /// returned.
     ///
     /// # Errors
     ///
