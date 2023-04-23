@@ -53,6 +53,9 @@ pub trait TokenIterExt: Iterator<Item = TokenTree> {
     ///
     /// Returns the group's inner [`TokenStream`] as a [`TokenIter`] when successful.
     ///
+    /// This method should always consume the next item from the stream, even when an error is
+    /// returned.
+    ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
@@ -60,6 +63,9 @@ pub trait TokenIterExt: Iterator<Item = TokenTree> {
     fn expect_group(&mut self, expect: Delimiter) -> Result<TokenIter, TokenStream>;
 
     /// Parse the input as an identifier, expecting it to match the given string.
+    ///
+    /// This method should always consume the next item from the stream, even when an error is
+    /// returned.
     ///
     /// # Errors
     ///
@@ -69,43 +75,62 @@ pub trait TokenIterExt: Iterator<Item = TokenTree> {
 
     /// Parse the input as punctuation, expecting it to match the given char.
     ///
+    /// This method should always consume the next item from the stream, even when an error is
+    /// returned.
+    ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
     /// `proc_macro` stream.
     fn expect_punct(&mut self, expect: char) -> Result<(), TokenStream>;
 
-    /// Parse the input as a group.
+    /// Try to parse the input as a group.
+    ///
+    /// This method should not consume the next item from the stream when an error is returned.
+    /// An implementation which always consumes will make it difficult for parsers to try
+    /// alternative matches.
     ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
     /// `proc_macro` stream.
-    fn as_group(&mut self) -> Result<Group, TokenStream>;
+    fn try_group(&mut self) -> Result<Group, TokenStream>;
 
-    /// Parse the input as an identifier.
+    /// Try to parse the input as an identifier.
+    ///
+    /// This method should not consume the next item from the stream when an error is returned.
+    /// An implementation which always consumes will make it difficult for parsers to try
+    /// alternative matches.
     ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
     /// `proc_macro` stream.
-    fn as_ident(&mut self) -> Result<Ident, TokenStream>;
+    fn try_ident(&mut self) -> Result<Ident, TokenStream>;
 
-    /// Parse the input as a literal.
+    /// Try to parse the input as a literal.
+    ///
+    /// This method should not consume the next item from the stream when an error is returned.
+    /// An implementation which always consumes will make it difficult for parsers to try
+    /// alternative matches.
     ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
     /// `proc_macro` stream.
-    fn as_lit(&mut self) -> Result<Literal, TokenStream>;
+    fn try_lit(&mut self) -> Result<Literal, TokenStream>;
 
-    /// Parse the input as punctuation.
+    /// Try to parse the input as punctuation.
+    ///
+    /// This method should not consume the next item from the stream when an error is returned.
+    /// An implementation which always consumes will make it difficult for parsers to try
+    /// alternative matches.
     ///
     /// # Errors
     ///
     /// Returns a compiler error if parsing fails. The error should be inserted into the
     /// `proc_macro` stream.
-    fn as_punct(&mut self) -> Result<Punct, TokenStream>;
+    fn try_punct(&mut self) -> Result<Punct, TokenStream>;
 }
 
 /// An extension trait for [`TokenTree`].

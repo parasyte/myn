@@ -32,7 +32,7 @@ impl TokenIterExt for TokenIter {
             };
 
             let mut group = self.expect_group(Delimiter::Bracket)?;
-            let ident = group.as_ident()?;
+            let ident = group.try_ident()?;
 
             attrs.push(Attribute {
                 name: ident,
@@ -97,66 +97,81 @@ impl TokenIterExt for TokenIter {
     }
 
     fn expect_group(&mut self, expect: Delimiter) -> Result<TokenIter, TokenStream> {
-        self.as_group().and_then(|group| {
-            let delim = group.delimiter();
-            if delim == expect {
-                Ok(group.stream().into_token_iter())
-            } else {
-                let expect = match expect {
-                    Delimiter::Brace => "{",
-                    Delimiter::Bracket => "[",
-                    Delimiter::None => "delimiter",
-                    Delimiter::Parenthesis => "(",
-                };
+        self.try_group()
+            .and_then(|group| {
+                let delim = group.delimiter();
+                if delim == expect {
+                    Ok(group.stream().into_token_iter())
+                } else {
+                    let expect = match expect {
+                        Delimiter::Brace => "{",
+                        Delimiter::Bracket => "[",
+                        Delimiter::None => "delimiter",
+                        Delimiter::Parenthesis => "(",
+                    };
 
-                Err(spanned_error(format!("Expected `{expect}`"), group.span()))
-            }
-        })
+                    Err(spanned_error(format!("Expected `{expect}`"), group.span()))
+                }
+            })
+            .map_err(|err| {
+                self.next();
+                err
+            })
     }
 
     fn expect_ident(&mut self, expect: &str) -> Result<(), TokenStream> {
-        self.as_ident().and_then(|ident| {
-            if ident.to_string() == expect {
-                Ok(())
-            } else {
-                Err(spanned_error(format!("Expected `{expect}`"), ident.span()))
-            }
-        })
+        self.try_ident()
+            .and_then(|ident| {
+                if ident.to_string() == expect {
+                    Ok(())
+                } else {
+                    Err(spanned_error(format!("Expected `{expect}`"), ident.span()))
+                }
+            })
+            .map_err(|err| {
+                self.next();
+                err
+            })
     }
 
     fn expect_punct(&mut self, expect: char) -> Result<(), TokenStream> {
-        self.as_punct().and_then(|punct| {
-            if punct.as_char() == expect {
-                Ok(())
-            } else {
-                Err(spanned_error(format!("Expected `{expect}`"), punct.span()))
-            }
-        })
+        self.try_punct()
+            .and_then(|punct| {
+                if punct.as_char() == expect {
+                    Ok(())
+                } else {
+                    Err(spanned_error(format!("Expected `{expect}`"), punct.span()))
+                }
+            })
+            .map_err(|err| {
+                self.next();
+                err
+            })
     }
 
-    fn as_group(&mut self) -> Result<Group, TokenStream> {
-        match self.next() {
+    fn try_group(&mut self) -> Result<Group, TokenStream> {
+        match self.next_if(|token| matches!(token, TokenTree::Group(_))) {
             Some(TokenTree::Group(group)) => Ok(group),
             tree => Err(spanned_error("Expected group", tree.as_span())),
         }
     }
 
-    fn as_ident(&mut self) -> Result<Ident, TokenStream> {
-        match self.next() {
+    fn try_ident(&mut self) -> Result<Ident, TokenStream> {
+        match self.next_if(|token| matches!(token, TokenTree::Ident(_))) {
             Some(TokenTree::Ident(ident)) => Ok(ident),
             tree => Err(spanned_error("Expected identifier", tree.as_span())),
         }
     }
 
-    fn as_lit(&mut self) -> Result<Literal, TokenStream> {
-        match self.next() {
+    fn try_lit(&mut self) -> Result<Literal, TokenStream> {
+        match self.next_if(|token| matches!(token, TokenTree::Literal(_))) {
             Some(TokenTree::Literal(lit)) => Ok(lit),
             tree => Err(spanned_error("Expected literal", tree.as_span())),
         }
     }
 
-    fn as_punct(&mut self) -> Result<Punct, TokenStream> {
-        match self.next() {
+    fn try_punct(&mut self) -> Result<Punct, TokenStream> {
+        match self.next_if(|token| matches!(token, TokenTree::Punct(_))) {
             Some(TokenTree::Punct(punct)) => Ok(punct),
             tree => Err(spanned_error("Expected punctuation", tree.as_span())),
         }
@@ -169,5 +184,129 @@ impl std::fmt::Debug for Attribute {
             .field("name", &self.name)
             .field("tree", &"TokenIter {...}")
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_tokeniter_expect_group() {
+        let mut input = TokenStream::from_str("{ foo }").unwrap().into_token_iter();
+        assert!(input.expect_group(Delimiter::Brace).is_ok());
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("( foo )").unwrap().into_token_iter();
+        assert!(input.expect_group(Delimiter::Brace).is_err());
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("foo").unwrap().into_token_iter();
+        assert!(input.expect_group(Delimiter::Brace).is_err());
+        assert!(input.next().is_none());
+    }
+
+    #[test]
+    fn test_tokeniter_expect_ident() {
+        let mut input = TokenStream::from_str("foo").unwrap().into_token_iter();
+        assert!(input.expect_ident("foo").is_ok());
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("bar").unwrap().into_token_iter();
+        assert!(input.expect_ident("foo").is_err());
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("!").unwrap().into_token_iter();
+        assert!(input.expect_ident("foo").is_err());
+        assert!(input.next().is_none());
+    }
+
+    #[test]
+    fn test_tokeniter_expect_punct() {
+        let mut input = TokenStream::from_str("!").unwrap().into_token_iter();
+        assert!(input.expect_punct('!').is_ok());
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("#").unwrap().into_token_iter();
+        assert!(input.expect_punct('!').is_err());
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("foo").unwrap().into_token_iter();
+        assert!(input.expect_punct('!').is_err());
+        assert!(input.next().is_none());
+    }
+
+    #[test]
+    fn test_tokeniter_try_group() {
+        let mut input = TokenStream::from_str("{ foo }").unwrap().into_token_iter();
+        let expected = Ident::new("foo", Span::call_site());
+
+        let group = input.try_group().unwrap();
+        let tree = match group.stream().into_iter().next() {
+            Some(TokenTree::Ident(ident)) => ident,
+            _ => panic!(),
+        };
+        assert_eq!(tree, expected);
+    }
+
+    #[test]
+    fn test_tokeniter_try_group_peek() {
+        let mut input = TokenStream::from_str("!").unwrap().into_token_iter();
+
+        assert!(input.try_group().is_err());
+        assert!(input.next().is_some());
+        assert!(input.next().is_none());
+    }
+
+    #[test]
+    fn test_tokeniter_try_ident() {
+        let mut input = TokenStream::from_str("foo").unwrap().into_token_iter();
+        let expected = Ident::new("foo", Span::call_site());
+
+        assert_eq!(input.try_ident().unwrap(), expected);
+    }
+
+    #[test]
+    fn test_tokeniter_try_ident_peek() {
+        let mut input = TokenStream::from_str("!").unwrap().into_token_iter();
+
+        assert!(input.try_ident().is_err());
+        assert!(input.next().is_some());
+        assert!(input.next().is_none());
+    }
+
+    #[test]
+    fn test_tokeniter_try_lit() {
+        let mut input = TokenStream::from_str("'!'").unwrap().into_token_iter();
+        let expected = Literal::character('!').to_string();
+
+        assert_eq!(input.try_lit().unwrap().to_string(), expected);
+    }
+
+    #[test]
+    fn test_tokeniter_try_lit_peek() {
+        let mut input = TokenStream::from_str("!").unwrap().into_token_iter();
+
+        assert!(input.try_lit().is_err());
+        assert!(input.next().is_some());
+        assert!(input.next().is_none());
+    }
+
+    #[test]
+    fn test_tokeniter_try_punct() {
+        let mut input = TokenStream::from_str("!").unwrap().into_token_iter();
+        let expected = '!';
+
+        assert_eq!(input.try_punct().unwrap().as_char(), expected);
+    }
+
+    #[test]
+    fn test_tokeniter_try_punct_peek() {
+        let mut input = TokenStream::from_str("foo").unwrap().into_token_iter();
+
+        assert!(input.try_punct().is_err());
+        assert!(input.next().is_some());
+        assert!(input.next().is_none());
     }
 }

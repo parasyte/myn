@@ -39,7 +39,9 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::all)]
 #![deny(clippy::pedantic)]
+#![cfg_attr(test, allow(clippy::cmp_owned))]
 
+#[cfg(not(test))]
 extern crate proc_macro;
 
 pub mod prelude;
