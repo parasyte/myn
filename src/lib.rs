@@ -29,6 +29,20 @@
 //!
 //! The [`onlyargs`] and [`onlyerror`] crates are good examples of how to use the library.
 //!
+//! # Feature Flags
+//!
+//! - `testing`: Enable the use of `myn` in unit tests with `proc-macro2`. This allows for testing
+//!   scenarios at the expense of build times. The recommended way to use this feature flag is to
+//!   enable it only in the `[dev-dependencies]` table:
+//!
+//! ```toml
+//! [dependencies]
+//! myn = "0.1"
+//!
+//! [dev-dependencies]
+//! myn = { features = ["testing"] }
+//! ```
+//!
 //! [benchmarks]: https://github.com/parasyte/myn/blob/main/benchmarks.md
 //! [`onlyargs`]: https://github.com/parasyte/onlyargs
 //! [`onlyerror`]: https://github.com/parasyte/onlyerror
@@ -39,9 +53,9 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::all)]
 #![deny(clippy::pedantic)]
-#![cfg_attr(test, allow(clippy::cmp_owned))]
+#![cfg_attr(any(test, feature = "testing"), allow(clippy::cmp_owned))]
 
-#[cfg(not(test))]
+#[cfg(not(all(test, feature = "testing")))]
 extern crate proc_macro;
 
 pub mod prelude;
