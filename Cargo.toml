@@ -10,8 +10,14 @@ keywords = ["macros", "myn"]
 categories = ["development-tools::procedural-macro-helpers", "parser-implementations"]
 license = "MIT"
 
-[dependencies]
-# No dependencies!
+[features]
+default = []
+testing = ["proc-macro"]
+
+[dependencies.proc-macro]
+package = "proc-macro2"
+version = "1"
+optional = true
 
 [dev-dependencies]
 proc_macro = { package = "proc-macro2", version = "1" }
