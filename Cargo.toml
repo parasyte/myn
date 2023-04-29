@@ -12,7 +12,7 @@ license = "MIT"
 
 [features]
 default = []
-testing = ["dep:proc-macro"]
+testing = ["proc-macro"]
 
 [dependencies.proc-macro]
 package = "proc-macro2"
