@@ -243,6 +243,8 @@ mod tests {
         let expected = Ident::new("foo", Span::call_site());
 
         let group = input.try_group().unwrap();
+        // TODO: This can be replaced with `let else` after MSRV 1.65
+        #[allow(clippy::single_match_else)]
         let tree = match group.stream().into_iter().next() {
             Some(TokenTree::Ident(ident)) => ident,
             _ => panic!(),
