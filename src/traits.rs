@@ -198,7 +198,6 @@ impl LiteralExt for Literal {
 
         // Strip double quotes and escapes.
         Ok(string[1..string.len() - 1]
-            .trim()
             .replace(r#"\""#, r#"""#)
             .replace(r"\n", "\n")
             .replace(r"\r", "\r")
