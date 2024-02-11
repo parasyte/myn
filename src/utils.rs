@@ -20,13 +20,21 @@ pub fn spanned_error<S: AsRef<str>>(msg: S, span: Span) -> TokenStream {
     ])
 }
 
-/// Get a list of lines representing the doc comment.
+/// Get a list of lines representing the doc comments.
 #[must_use]
 pub fn get_doc_comment(attrs: &[Attribute]) -> Vec<String> {
+    get_attr_strings(attrs, "doc")
+}
+
+/// Get a list of strings matching the given attribute name.
+///
+/// This only supports attributes of the form `#[name = "..."]`.
+#[must_use]
+pub fn get_attr_strings(attrs: &[Attribute], name: &str) -> Vec<String> {
     attrs
         .iter()
         .filter_map(|attr| {
-            if attr.name.to_string() == "doc" {
+            if attr.name.to_string() == name {
                 let mut tree = attr.tree.clone();
 
                 match tree.next() {
