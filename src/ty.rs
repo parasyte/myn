@@ -66,7 +66,11 @@ impl TokenIterExt for TokenIter {
 
         while let Some(tree) = self.peek() {
             match tree {
-                TokenTree::Punct(punct) if punct.as_char() == ',' && nesting == 0 => break,
+                TokenTree::Punct(punct)
+                    if [',', ';'].contains(&punct.as_char()) && nesting == 0 =>
+                {
+                    break
+                }
                 TokenTree::Punct(punct) => {
                     let ch = punct.as_char();
 
@@ -84,7 +88,43 @@ impl TokenIterExt for TokenIter {
                     span.get_or_insert_with(|| ident.span());
                     path.push_str(&ident.to_string());
                 }
-                _ => return Err(spanned_error("Unexpected token", self.next().as_span())),
+                TokenTree::Group(group) => {
+                    span.get_or_insert(group.span());
+                    let mut stream = group.stream().into_token_iter();
+
+                    match group.delimiter() {
+                        Delimiter::Parenthesis => {
+                            // Tuples are comma-separated paths.
+                            path.push('(');
+                            while stream.peek().is_some() {
+                                let (inner, _span) = stream.parse_path()?;
+                                path.push_str(&inner);
+                                if stream.peek().is_some() {
+                                    stream.expect_punct(',')?;
+                                    path.push_str(", ");
+                                }
+                            }
+                            if path.ends_with(' ') {
+                                path.pop();
+                            }
+                            path.push(')');
+                        }
+                        Delimiter::Bracket => {
+                            // Arrays are in `[path; size]` form.
+                            path.push('[');
+                            let (inner, _span) = stream.parse_path()?;
+                            path.push_str(&inner);
+                            stream.expect_punct(';')?;
+                            path.push_str("; ");
+                            path.push_str(&stream.try_lit()?.to_string());
+                            path.push(']');
+                        }
+                        _ => return Err(spanned_error("Unexpected token", group.span())),
+                    }
+                }
+                TokenTree::Literal(_) => {
+                    return Err(spanned_error("Unexpected token", self.next().as_span()))
+                }
             }
 
             self.next();
@@ -191,6 +231,44 @@ impl std::fmt::Debug for Attribute {
 mod tests {
     use super::*;
     use std::str::FromStr;
+
+    #[test]
+    fn test_tokeniter_parse_path() {
+        let mut input = TokenStream::from_str("foo::bar").unwrap().into_token_iter();
+        assert_eq!(input.parse_path().unwrap().0, "foo::bar");
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("foo::bar<baz>")
+            .unwrap()
+            .into_token_iter();
+        assert_eq!(input.parse_path().unwrap().0, "foo::bar<baz>");
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("foo::bar<()>")
+            .unwrap()
+            .into_token_iter();
+        assert_eq!(input.parse_path().unwrap().0, "foo::bar<()>");
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("foo::bar<(foo, bar::baz<T>)>")
+            .unwrap()
+            .into_token_iter();
+        assert_eq!(
+            input.parse_path().unwrap().0,
+            "foo::bar<(foo, bar::baz<T>)>"
+        );
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("foo<(bar, [i32; 4])>")
+            .unwrap()
+            .into_token_iter();
+        assert_eq!(input.parse_path().unwrap().0, "foo<(bar, [i32; 4])>");
+        assert!(input.next().is_none());
+
+        let mut input = TokenStream::from_str("(u8, )").unwrap().into_token_iter();
+        assert_eq!(input.parse_path().unwrap().0, "(u8,)");
+        assert!(input.next().is_none());
+    }
 
     #[test]
     fn test_tokeniter_expect_group() {
